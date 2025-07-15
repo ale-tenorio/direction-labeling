@@ -8,11 +8,12 @@ import math
 # --- Configuration ---
 GIF_DIRECTORY = "gifs" 
 CSV_FILE = "labels.csv"
-CANVAS_WIDTH = 600
-CANVAS_HEIGHT = 300
+CANVAS_WIDTH = 400
+CANVAS_HEIGHT = 200
 
 class AngleLabeler:
     def __init__(self, root, gif_folder, csv_path):
+        # ... (this entire method is unchanged) ...
         self.root = root
         self.gif_folder = gif_folder
         self.csv_path = csv_path
@@ -26,7 +27,6 @@ class AngleLabeler:
         
         self.selected_angle = None
 
-        # --- Setup the GUI ---
         self.root.title("GIF Angle Labeler")
         self.root.resizable(False, False)
         main_frame = ttk.Frame(self.root, padding="10")
@@ -36,9 +36,7 @@ class AngleLabeler:
         self.canvas.grid(row=0, column=0, columnspan=3, pady=5)
         self.image_on_canvas = self.canvas.create_image(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, anchor=tk.CENTER)
         
-        # The selected line is a solid red line
-        self.selected_line = self.canvas.create_line(0,0,0,0, fill="red", width=2, state=tk.HIDDEN)
-        ### MODIFIED: The hover line is now a dotted RED line ###
+        self.selected_line = self.canvas.create_line(0,0,0,0, fill="red", width=3, state=tk.HIDDEN)
         self.hover_line = self.canvas.create_line(0,0,0,0, fill="red", width=2, dash=(4, 4))
 
         self.filename_label = ttk.Label(main_frame, text="Filename: N/A", font=("Helvetica", 10))
@@ -64,6 +62,7 @@ class AngleLabeler:
 
 
     def load_gif_list(self):
+        # ... (this entire method is unchanged) ...
         if not os.path.exists(self.gif_folder):
             messagebox.showerror("Error", f"The directory '{self.gif_folder}' was not found.")
             self.root.quit()
@@ -109,9 +108,11 @@ class AngleLabeler:
         self.gif_frames = []
         try:
             with Image.open(filepath) as img:
-                img.thumbnail((CANVAS_WIDTH, CANVAS_HEIGHT), Image.Resampling.LANCZOS)
+                ### MODIFIED: We now loop through frames and resize each one ###
                 for frame in ImageSequence.Iterator(img):
-                    self.gif_frames.append(ImageTk.PhotoImage(frame.convert("RGBA")))
+                    # Resize the frame to the exact canvas size, potentially stretching it
+                    resized_frame = frame.resize((CANVAS_WIDTH, CANVAS_HEIGHT), Image.Resampling.LANCZOS)
+                    self.gif_frames.append(ImageTk.PhotoImage(resized_frame.convert("RGBA")))
         except Exception as e:
             messagebox.showerror("Error", f"Could not load {filename}.\nError: {e}")
             self.skip_gif()
@@ -119,7 +120,8 @@ class AngleLabeler:
 
         self.current_frame_index = 0
         self.animate_gif()
-
+        
+    # ... (all other methods from here on are unchanged) ...
 
     def animate_gif(self):
         if not self.gif_frames: return
@@ -128,12 +130,10 @@ class AngleLabeler:
         self.current_frame_index = (self.current_frame_index + 1) % len(self.gif_frames)
         self.animation_job = self.root.after(100, self.animate_gif)
 
-
     def _get_canvas_coords(self, event):
         canvas_x = event.x_root - self.canvas.winfo_rootx()
         canvas_y = event.y_root - self.canvas.winfo_rooty()
         return canvas_x, canvas_y
-
 
     def calculate_angle_from_coords(self, x, y):
         origin_x = CANVAS_WIDTH / 2
@@ -145,9 +145,7 @@ class AngleLabeler:
         angle = 180 - degs
         return max(0, min(180, angle))
 
-
     def on_mouse_move(self, event):
-        """Handle mouse hovering anywhere in the window. Always updates the hover line."""
         x, y = self._get_canvas_coords(event)
         hover_angle = self.calculate_angle_from_coords(x, y)
         
@@ -158,23 +156,14 @@ class AngleLabeler:
             
         self.draw_angle_line(hover_angle, self.hover_line)
     
-    
     def on_mouse_click(self, event):
-        """Handle mouse click to select the angle."""
         x, y = self._get_canvas_coords(event)
-
         if 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT:
             angle = self.calculate_angle_from_coords(x, y)
-            
             self.selected_angle = angle
-            # Update label to show the newly selected angle
             self.angle_value_label.config(text=f"Hover: {angle:.1f}° | Selected: {self.selected_angle:.1f}°")
-            
-            # Draw the solid selected line
             self.draw_angle_line(self.selected_angle, self.selected_line)
             self.canvas.itemconfig(self.selected_line, state=tk.NORMAL)
-            # We no longer hide the hover line here, so it remains visible
-
 
     def draw_angle_line(self, angle, line_widget):
         origin_x = CANVAS_WIDTH / 2
@@ -189,7 +178,6 @@ class AngleLabeler:
         if self.selected_angle is None:
             messagebox.showwarning("No Angle Selected", "Please click on the image to select an angle before saving.")
             return
-
         filename = self.gifs_to_label[self.current_gif_index]
         with open(self.csv_path, 'a', newline='') as f:
             writer = csv.writer(f)
