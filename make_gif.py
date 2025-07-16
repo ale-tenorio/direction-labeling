@@ -3,8 +3,9 @@ import os
 import glob
 import math
 from tqdm import tqdm
-import random
 import json
+from multiprocessing import Pool
+import multiprocessing
 
 def crop_to_half_circle(image, center, radius, direction=270):
     """
@@ -66,27 +67,33 @@ def create_gif_semicircle(image_paths, center, radius, direction, output_path, f
     # Save frames as a GIF
     frames[0].save(output_path, save_all=True, append_images=frames[1:], duration=1000 // fps, loop=0)
 
+def process_gif(args):
+    """
+    Process a single GIF creation task for multiprocessing.
+    :param args: Tuple containing (i, data_list, image_paths_list, file_name)
+    """
+    idx, data_list, image_paths_list, file_name = args
+    radius = 128
+    direction = data_list[idx]['direction'] - 180
+    center = data_list[idx]['point1']
+    init_frame = data_list[idx]['batch_start_index']
+    end_frame = data_list[idx]['batch_end_index']
+    selected_image_paths = image_paths_list[init_frame:end_frame]
+    output_path = f"gifs/{file_name}_output_{idx + 1}.gif"
+    create_gif_semicircle(selected_image_paths, center, radius, direction, output_path, fps=24)
+
 if __name__ == "__main__":
     parent_dir = r"C:\Users\axt5780\OneDrive - The Pennsylvania State University\Documents\USGS\Datasets\UAS Colorado 2023"
     specific_file = 'CRG'
 
     json_path = os.path.join(parent_dir, specific_file, 'stacked_STIs', 'merged_points.json')
     with open(json_path, 'r') as f:
-        data = json.load(f)
+        data_list = json.load(f)
 
     frames_dir = os.path.join(parent_dir, specific_file, 'frames')
-    all_image_paths = glob.glob(os.path.join(frames_dir, "*.jpg"))
+    image_paths_list = glob.glob(os.path.join(frames_dir, "*.jpg"))
 
-    for i in range(len(data)): 
-        radius = 128
-
-        direction = data[i]['direction'] - 180
-        center = data[i]['point1']
-        init_frame = data[i]['batch_start_index']
-        end_frame = data[i]['batch_end_index']
-
-        image_paths = all_image_paths[init_frame:end_frame]
-
-        output_path = f"gifs/{specific_file}_output_{i + 1}.gif"
-
-        create_gif_semicircle(image_paths, center, radius, direction, output_path, fps=24)
+    args_list = [(i, data_list, image_paths_list, specific_file) for i in range(len(data_list))]
+    print(f"Available CPU cores: {multiprocessing.cpu_count()}")
+    with Pool(processes=multiprocessing.cpu_count()) as pool:
+        pool.map(process_gif, args_list)
