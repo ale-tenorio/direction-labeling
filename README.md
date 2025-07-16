@@ -1,6 +1,17 @@
 # GIF Angle Labeling Tool
 
-A simple Python GUI tool to assist in labeling the general direction of movement in animated GIFs of semicircles. The tool allows for rapid, mouse-based angle selection and automatically saves progress.
+A simple Python GUI tool to assist in labeling the general direction of movement in animated GIFs of semicircles. The tool allows for mouse-based angle selection and automatically saves progress.
+
+![Sample GIF labeling screenshot](img/sample-screenshot.jpg)
+
+
+## Notes about make_gif.py
+
+Generates a GIF animation from a sequence of image frames and overlays coordinates specified in a JSON file.
+
+Note:
+- To use this script, you need a JSON file containing the coordinates to overlay.
+- You also need the image frames to be included in the GIF.
 
 ## Installation & Setup
 
