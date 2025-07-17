@@ -60,7 +60,7 @@ class AngleLabeler:
         self.image_on_canvas = self.canvas.create_image(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, anchor=tk.CENTER)
         
         # Angle lines are drawn on top of the GIF.
-        self.selected_line = self.canvas.create_line(0,0,0,0, fill="red", width=3, state=tk.HIDDEN)
+        self.selected_line = self.canvas.create_line(0,0,0,0, fill="red", width=2, state=tk.HIDDEN)
         self.hover_line = self.canvas.create_line(0,0,0,0, fill="red", width=2, dash=(4, 4))
 
         # --- Information Labels ---
