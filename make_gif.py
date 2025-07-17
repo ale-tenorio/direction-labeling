@@ -79,7 +79,7 @@ def process_gif(args):
     init_frame = data_list[idx]['batch_start_index']
     end_frame = data_list[idx]['batch_end_index']
     selected_image_paths = image_paths_list[init_frame:end_frame]
-    output_path = f"gifs/{file_name}_output_{idx + 1}.gif"
+    output_path = f"gifs/{file_name}_output_{idx + 1:04d}.gif"
     create_gif_semicircle(selected_image_paths, center, radius, direction, output_path, fps=24)
 
 if __name__ == "__main__":
