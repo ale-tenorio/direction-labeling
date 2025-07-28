@@ -18,7 +18,7 @@ import csv
 import math
 
 # --- Configuration ---
-GIF_DIRECTORY = "uncertainty_sample"
+GIF_DIRECTORY = "gifs"
 CSV_FILE = "labels_100.csv"
 CANVAS_WIDTH = 400
 CANVAS_HEIGHT = 200
